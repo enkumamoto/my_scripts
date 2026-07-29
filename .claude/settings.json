@@ -25,7 +25,18 @@
       "Bash(git restore *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "Bash(sed -i '' 's/oraex/trabalho/g' .claude/SKILLS.md && grep -n \"trabalho\" .claude/SKILLS.md)"
+      "Bash(sed -i '' 's/oraex/trabalho/g' .claude/SKILLS.md && grep -n \"trabalho\" .claude/SKILLS.md)",
+      "Bash(python3 -m py_compile /Users/ronin/Documents/Coding/scripts/meus_scripts/localiza_emove.py)",
+      "Bash(rm -rf teste_origem teste_docs)",
+      "Bash(mkdir -p teste_origem/sub/vazia teste_origem/sub2)",
+      "Bash(echo \"conteudo\")",
+      "Bash(touch teste_origem/sub2/nao_alvo.txt)",
+      "Bash(python3 /Users/ronin/Documents/Coding/scripts/meus_scripts/localiza_emove.py teste_origem --documentos teste_docs)",
+      "Bash(rm -rf t_origem t_docs)",
+      "Bash(mkdir -p t_origem/sub/vazia)",
+      "Bash(echo x *)",
+      "Bash(python3 /Users/ronin/Documents/Coding/scripts/meus_scripts/localiza_emove.py t_origem --documentos t_docs --acao mover)",
+      "Bash(python3 /Users/ronin/Documents/Coding/scripts/meus_scripts/localiza_emove.py t_origem --documentos t_docs --acao limpar)"
     ],
     "additionalDirectories": [
       "/Users/ronin/Documents/Coding/scripts",

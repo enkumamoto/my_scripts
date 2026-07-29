@@ -64,6 +64,29 @@ python3 aws_cleanup.py --max-workers 5 --confirm         # paralelismo das chama
 
 Requer credenciais AWS configuradas (`~/.aws/credentials` ou variáveis de ambiente) com permissão para os serviços que for limpar. Cada execução grava um log de auditoria `aws_cleanup_log_AAAAMMDD_HHMMSS.json` com todas as ações tentadas, sucesso/falha e se foi `dry_run`.
 
+## localiza_emove.py
+
+Varre recursivamente uma pasta em busca de PDF/DOC/DOCX/XLS/XLSX, detecta arquivos repetidos por conteúdo (hash SHA-256) e organiza tudo dentro de uma pasta `Documentos`, em três subpastas: `DOCS` (.doc/.docx), `XLS` (.xls/.xlsx) e `PDFs` (.pdf). Também remove pastas vazias deixadas para trás na origem depois de mover os arquivos.
+
+### Uso
+
+```bash
+python3 localiza_emove.py /caminho/da/origem                          # pergunta o que fazer (menu)
+python3 localiza_emove.py /caminho/da/origem --dry-run                # so mostra o que faria
+python3 localiza_emove.py /caminho/da/origem --documentos /outra/pasta/Documentos
+python3 localiza_emove.py /caminho/da/origem --acao mover             # so localiza e move
+python3 localiza_emove.py /caminho/da/origem --acao limpar            # so remove pastas vazias na origem
+python3 localiza_emove.py /caminho/da/origem --acao tudo              # mover + limpar (padrao do menu)
+```
+
+Se `--acao` não for informado, o script pergunta interativamente (menu 1/2/3):
+
+1. **tudo** — localiza, move e depois remove as pastas vazias que sobraram.
+2. **mover** — só localiza e move, sem remover pastas.
+3. **limpar** — só remove pastas vazias na origem, sem mover nada.
+
+Regras de segurança: duplicatas (mesmo conteúdo) são movidas apenas uma vez, as cópias extras ficam onde estão; se já existir no destino um arquivo idêntico o arquivo de origem é apenas pulado (não sobrescreve, não duplica); se existir um arquivo diferente com o mesmo nome, o novo é renomeado (`nome_1.pdf`, `nome_2.pdf`...). A remoção de pastas vazias nunca apaga a pasta de origem em si nem as pastas de destino (`DOCS`/`XLS`/`PDFs`).
+
 ## battery_health.sh
 
 Diagnóstico de saúde da bateria em notebooks **Linux**, lendo `/sys/class/power_supply`. Mostra status de carga, percentual atual, saúde estimada (`energy_full` / `energy_full_design`) e ciclos de carga, com interpretação textual dos resultados.
