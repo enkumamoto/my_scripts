@@ -21,10 +21,15 @@
       "Bash(git branch *)",
       "Bash(git reset *)",
       "Bash(git checkout *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git restore *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(sed -i '' 's/oraex/trabalho/g' .claude/SKILLS.md && grep -n \"trabalho\" .claude/SKILLS.md)"
     ],
     "additionalDirectories": [
-      "/Users/ronin/Documents/Coding/scripts"
+      "/Users/ronin/Documents/Coding/scripts",
+      "/Users/ronin/Documents/Coding/scripts/.claude"
     ]
   }
 }

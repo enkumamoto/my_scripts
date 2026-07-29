@@ -4,7 +4,7 @@ import shutil
 import sys
 from pathlib import Path
 
-ORIGEM_PADRAO = "/Volumes/Compartilhamento"
+ORIGEM_PADRAO = "/Volumes/EXTERNO"
 BACKUP_PADRAO = "/Users/ronin/Documents/bkp"
 
 PASTAS_IGNORADAS = {
@@ -42,6 +42,9 @@ def parse_args():
                    help="Considera desatualizado (e recopia) se o tamanho diferir.")
     p.add_argument("--incluir-tudo", action="store_true",
                    help="Nao ignora arquivos/pastas de sistema (copia literalmente tudo).")
+    p.add_argument("--inverter", action="store_true",
+                   help="Inverte o sentido: usa backup como origem e origem como destino "
+                        "(copia do backup para a origem).")
     return p.parse_args()
 
 
@@ -69,15 +72,34 @@ def escolher_modo_interativo() -> str:
         print("Opcao invalida, tente novamente.")
 
 
+def escolher_direcao_interativa() -> bool:
+    opcoes = {"1": False, "2": True}
+    print("Qual o sentido da copia?")
+    print("  1) Origem -> Backup (padrao)")
+    print("  2) Backup -> Origem (inverter)")
+    while True:
+        escolha = input("Escolha [1/2]: ").strip()
+        if escolha in opcoes:
+            return opcoes[escolha]
+        print("Opcao invalida, tente novamente.")
+
+
 def main():
     args = parse_args()
 
+    modo_interativo = args.modo is None
     modo = args.modo or escolher_modo_interativo()
+    if modo_interativo and not args.inverter:
+        args.inverter = escolher_direcao_interativa()
     mostrar_comparacao = modo in ("comparar", "ambos")
     copiar_arquivos = modo in ("copiar", "ambos")
 
-    origem = Path(args.origem)
-    backup = Path(args.backup)
+    if args.inverter:
+        origem = Path(args.backup)
+        backup = Path(args.origem)
+    else:
+        origem = Path(args.origem)
+        backup = Path(args.backup)
 
     copiar_arquivos = copiar_arquivos and not args.dry_run
 
@@ -131,8 +153,9 @@ def main():
             tamanho_diferente += 1
 
         if precisa_copiar:
-            if mostrar_comparacao:
-                print(f"[ALERTA] {relativo}  ->  {motivo}")
+            if mostrar_comparacao and motivo == "nao existe no backup":
+                print(f"[ALERTA] {relativo}")
+                print(f"         local: {arquivo}")
             if not copiar_arquivos:
                 continue
             try:
