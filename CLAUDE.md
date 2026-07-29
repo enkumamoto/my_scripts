@@ -13,7 +13,7 @@ Cada script tem um tronco comum (sistema, carga/CPU, memória, disco, inodes), u
 
 Além dos scripts Bash, `oraex/capacity_apache.py` é uma ferramenta Python separada (roda na máquina do analista, não no servidor RHEL) que lê os logs gerados por `healthcheck_apache.sh` e gera uma planilha `.xlsx` de capacity planning (baseline medida + sizing do servidor novo).
 
-Os scripts `oraex/*` ficam agrupados na pasta `oraex/` (suíte de health check/capacity Oracle/Apache). Os utilitários avulsos `meus_scripts/comparar_e_colar.py` e `meus_scripts/formatar_hd_exfat.py` ficam em `meus_scripts/` e não fazem parte dessa suíte — são scripts pessoais soltos (comparação/backup de pastas e formatação de HD externo em exFAT).
+Os scripts `oraex/*` ficam agrupados na pasta `oraex/` (suíte de health check/capacity Oracle/Apache). Os utilitários avulsos em `meus_scripts/` (`comparar_e_colar.py`, `formatar_hd_exfat.py`, `aws_cleanup.py`, `battery_health.sh`) não fazem parte dessa suíte — são scripts pessoais soltos (comparação/backup de pastas, formatação de HD externo em exFAT, limpeza destrutiva de conta AWS e diagnóstico de saúde de bateria em Linux). Ver `meus_scripts/README.md` para detalhes de uso de cada um.
 
 ## Ambiente alvo
 
@@ -34,7 +34,10 @@ Os scripts `oraex/*` ficam agrupados na pasta `oraex/` (suíte de health check/c
 │   └── requirements.txt         # dependencias Python do capacity_apache.py
 ├── meus_scripts/
 │   ├── comparar_e_colar.py      # compara pasta de origem com backup e copia o que falta
-│   └── formatar_hd_exfat.py     # formata HD/pendrive externo em exFAT (macOS)
+│   ├── formatar_hd_exfat.py     # formata HD/pendrive externo em exFAT (macOS)
+│   ├── aws_cleanup.py           # remove permanentemente recursos de uma conta AWS (sandbox/teste)
+│   ├── battery_health.sh        # diagnostico de saude da bateria em notebooks Linux
+│   └── README.md                # uso detalhado de cada script desta pasta
 ├── CLAUDE.md                    # este arquivo
 └── .claude/SKILLS.md            # catálogo de checagens + runbook de alertas (suíte oraex)
 ```

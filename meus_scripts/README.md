@@ -1,6 +1,6 @@
 # meus_scripts
 
-Utilitários pessoais soltos, sem relação com a suíte `oraex/` (health check Oracle/Apache). São dois scripts Python independentes.
+Utilitários pessoais soltos, sem relação com a suíte `oraex/` (health check Oracle/Apache).
 
 ## comparar_e_colar.py
 
@@ -46,3 +46,32 @@ Funciona apenas no macOS (usa `diskutil`). Nunca formata disco marcado como inte
 Esquema de partição escolhido automaticamente: MBR até 2TB, GPT acima disso.
 
 Observação sobre permissões: exFAT não guarda o bit de execução Unix. Para tornar um arquivo executável em Linux/macOS após copiar, use `chmod +x nome_do_arquivo`.
+
+## aws_cleanup.py
+
+**Script destrutivo.** Remove permanentemente todos os recursos de uma conta AWS (EC2, RDS, S3, Lambda, IAM, VPC, etc.), em paralelo via `boto3`/`concurrent.futures`. Pensado para higienizar contas de sandbox/teste — nunca rodar contra uma conta de produção.
+
+### Uso
+
+```bash
+python3 aws_cleanup.py --scan                          # so lista os recursos existentes, nao apaga nada
+python3 aws_cleanup.py --dry-run                        # simula a limpeza completa sem apagar
+python3 aws_cleanup.py --confirm                        # executa a limpeza de verdade (pede confirmacao)
+python3 aws_cleanup.py --region us-east-1 --confirm      # regiao especifica
+python3 aws_cleanup.py --services ec2,s3,rds --confirm   # limita a servicos especificos
+python3 aws_cleanup.py --max-workers 5 --confirm         # paralelismo das chamadas AWS
+```
+
+Requer credenciais AWS configuradas (`~/.aws/credentials` ou variáveis de ambiente) com permissão para os serviços que for limpar. Cada execução grava um log de auditoria `aws_cleanup_log_AAAAMMDD_HHMMSS.json` com todas as ações tentadas, sucesso/falha e se foi `dry_run`.
+
+## battery_health.sh
+
+Diagnóstico de saúde da bateria em notebooks **Linux**, lendo `/sys/class/power_supply`. Mostra status de carga, percentual atual, saúde estimada (`energy_full` / `energy_full_design`) e ciclos de carga, com interpretação textual dos resultados.
+
+### Uso
+
+```bash
+bash battery_health.sh
+```
+
+Não recebe argumentos. Precisa de `bc` instalado (usado para o cálculo percentual de saúde). Sem efeito em macOS/Windows — depende da interface `/sys/class/power_supply` do kernel Linux.
