@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import argparse
+import os
 import shutil
 import sys
+import time
 from pathlib import Path
 
 ORIGEM_PADRAO = "/Volumes/EXTERNO"
@@ -46,6 +48,51 @@ def parse_args():
                    help="Inverte o sentido: usa backup como origem e origem como destino "
                         "(copia do backup para a origem).")
     return p.parse_args()
+
+
+def formatar_tamanho(num_bytes: float) -> str:
+    for unidade in ("B", "KB", "MB", "GB", "TB"):
+        if num_bytes < 1024:
+            return f"{num_bytes:.1f}{unidade}"
+        num_bytes /= 1024
+    return f"{num_bytes:.1f}PB"
+
+
+def formatar_duracao(segundos: float) -> str:
+    segundos = int(segundos)
+    h, resto = divmod(segundos, 3600)
+    m, s = divmod(resto, 60)
+    if h:
+        return f"{h}h{m:02d}m{s:02d}s"
+    if m:
+        return f"{m}m{s:02d}s"
+    return f"{s}s"
+
+
+def estimar_velocidade_gravacao(pasta_destino: Path, tamanho_bytes: int = 32 * 1024 * 1024) -> float:
+    """
+    Mede a velocidade real de escrita em 'pasta_destino' gravando (e
+    apagando) um arquivo de teste. Retorna bytes/segundo, ou 0.0 se nao
+    foi possivel medir (ex.: pasta ainda nao existe / sem permissao).
+    """
+    pasta_destino.mkdir(parents=True, exist_ok=True)
+    teste = pasta_destino / ".benchmark_comparar_e_colar.tmp"
+    dado = b"\0" * (1024 * 1024)  # 1MB, escrito em blocos
+    try:
+        inicio = time.monotonic()
+        with open(teste, "wb") as f:
+            escrito = 0
+            while escrito < tamanho_bytes:
+                f.write(dado)
+                escrito += len(dado)
+            f.flush()
+            os.fsync(f.fileno())
+        decorrido = time.monotonic() - inicio
+        return escrito / decorrido if decorrido > 0 else 0.0
+    except OSError:
+        return 0.0
+    finally:
+        teste.unlink(missing_ok=True)
 
 
 def deve_ignorar(caminho_relativo: Path, incluir_tudo: bool) -> bool:
@@ -126,7 +173,9 @@ def main():
     tamanho_diferente = 0
     copiados = 0
     erros = 0
+    a_copiar = []  # (arquivo, destino, tamanho)
 
+    # Fase 1: compara e monta a lista do que precisa ser copiado.
     for arquivo in origem.rglob("*"):
         if not arquivo.is_file():
             continue
@@ -156,17 +205,66 @@ def main():
             if mostrar_comparacao and motivo == "nao existe no backup":
                 print(f"[ALERTA] {relativo}")
                 print(f"         local: {arquivo}")
-            if not copiar_arquivos:
-                continue
+            if copiar_arquivos:
+                a_copiar.append((arquivo, destino, arquivo.stat().st_size))
+
+    # Fase 2: copia de fato, com progresso e ETA baseados na velocidade real.
+    if copiar_arquivos and a_copiar:
+        tamanho_total = sum(t for _, _, t in a_copiar)
+        print("-" * 60)
+        print(f"A copiar: {len(a_copiar)} arquivo(s), {formatar_tamanho(tamanho_total)}")
+        print(f"  {origem}  ->  {backup}")
+
+        print("Medindo velocidade de gravacao no destino...")
+        velocidade_estimada = estimar_velocidade_gravacao(backup)
+        if velocidade_estimada > 0:
+            eta_estimado = tamanho_total / velocidade_estimada
+            print(f"Velocidade medida  : {formatar_tamanho(velocidade_estimada)}/s")
+            print(f"Tempo estimado     : ~{formatar_duracao(eta_estimado)} "
+                  f"(estimativa baseada num teste rapido, pode variar)")
+        else:
+            print("Nao foi possivel medir a velocidade do destino; sem estimativa de tempo.")
+
+        try:
+            confirmacao = input("Iniciar a copia agora? [s/N]: ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            confirmacao = ""
+        if confirmacao != "s":
+            print("Copia cancelada pelo usuario. Nenhum arquivo foi copiado.")
+            copiar_arquivos = False
+            a_copiar = []
+
+    if copiar_arquivos and a_copiar:
+        inicio = time.monotonic()
+        bytes_copiados = 0
+        ultimo_print = 0.0
+
+        for arquivo, destino, tamanho in a_copiar:
             try:
                 destino.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(arquivo, destino)
                 copiados += 1
+                bytes_copiados += tamanho
                 if mostrar_comparacao:
                     print(f"         copiado para: {destino}")
             except Exception as e:
                 erros += 1
-                print(f"         ERRO ao copiar: {e}")
+                print(f"         ERRO ao copiar {arquivo}: {e}")
+                continue
+
+            agora = time.monotonic()
+            if agora - ultimo_print >= 2 or bytes_copiados == tamanho_total:
+                decorrido = agora - inicio
+                velocidade = bytes_copiados / decorrido if decorrido > 0 else 0
+                restante = tamanho_total - bytes_copiados
+                eta = restante / velocidade if velocidade > 0 else 0
+                pct = bytes_copiados / tamanho_total * 100 if tamanho_total else 100
+                print(f"[progresso] {formatar_tamanho(bytes_copiados)}/{formatar_tamanho(tamanho_total)} "
+                      f"({pct:.0f}%) - {formatar_tamanho(velocidade)}/s - "
+                      f"ETA: {formatar_duracao(eta)}")
+                ultimo_print = agora
+
+        print(f"Tempo total de copia: {formatar_duracao(time.monotonic() - inicio)}")
 
     print("-" * 60)
     print("RESUMO")

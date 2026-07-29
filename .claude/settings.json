@@ -36,7 +36,12 @@
       "Bash(mkdir -p t_origem/sub/vazia)",
       "Bash(echo x *)",
       "Bash(python3 /Users/ronin/Documents/Coding/scripts/meus_scripts/localiza_emove.py t_origem --documentos t_docs --acao mover)",
-      "Bash(python3 /Users/ronin/Documents/Coding/scripts/meus_scripts/localiza_emove.py t_origem --documentos t_docs --acao limpar)"
+      "Bash(python3 /Users/ronin/Documents/Coding/scripts/meus_scripts/localiza_emove.py t_origem --documentos t_docs --acao limpar)",
+      "Bash(rm -rf c_origem c_backup)",
+      "Bash(mkdir -p c_origem c_backup)",
+      "Bash(python3 /Users/ronin/Documents/Coding/scripts/meus_scripts/comparar_e_colar.py c_origem c_backup --modo comparar)",
+      "Bash(mkdir -p c_origem)",
+      "Bash(python3 /Users/ronin/Documents/Coding/scripts/meus_scripts/comparar_e_colar.py c_origem c_backup --modo copiar)"
     ],
     "additionalDirectories": [
       "/Users/ronin/Documents/Coding/scripts",
