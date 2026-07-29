@@ -1,6 +1,6 @@
 # meus_scripts
 
-Utilitários pessoais soltos, sem relação com a suíte `oraex/` (health check Oracle/Apache).
+Utilitários de uso pessoal, sem relação com a suíte `trabalho/` (health check Oracle/Apache).
 
 ## comparar_e_colar.py
 

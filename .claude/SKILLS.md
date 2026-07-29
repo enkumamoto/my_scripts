@@ -55,7 +55,7 @@ Listener caído — instância pode estar de pé mas inacessível por rede. `lsn
 
 ## Comandos úteis do dia a dia
 
-Scripts em `oraex/`.
+Scripts em `trabalho/`.
 
 ```bash
 # Triagem rápida de todos os alertas
@@ -73,7 +73,7 @@ ls -t /var/log/healthcheck/oracle_*.log | head -1 | xargs grep ALERTA
 Ferramenta Python separada (roda na estação do analista, não no servidor RHEL) que consolida os logs `apache_<host>_<data>_<hora>.log` do `healthcheck_apache.sh` em uma planilha `.xlsx` de dimensionamento.
 
 ```bash
-cd oraex
+cd trabalho
 pip install -r requirements.txt
 python capacity_apache.py ./logs -o capacity.xlsx
 ```

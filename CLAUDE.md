@@ -6,14 +6,14 @@ Contexto para trabalhar (IA ou humano) neste repositório de health check de ser
 
 Dois scripts Bash independentes que fazem checagem de saúde em nível de SO, rodam via cron e gravam um log por execução (nomeado com data/hora), com limpeza automática dos logs antigos.
 
-- `oraex/healthcheck_apache.sh` — servidor de aplicação: **Apache (httpd) + Spring Batch**.
-- `oraex/healthcheck_oracle.sh` — servidor de banco: **Oracle DB** (apenas nível SO, sem `sqlplus`).
+- `trabalho/healthcheck_apache.sh` — servidor de aplicação: **Apache (httpd) + Spring Batch**.
+- `trabalho/healthcheck_oracle.sh` — servidor de banco: **Oracle DB** (apenas nível SO, sem `sqlplus`).
 
 Cada script tem um tronco comum (sistema, carga/CPU, memória, disco, inodes), um bloco final específico do serviço e um "Resumo Capacity" (tabela de capacity com CPU/RAM/disco/ASM/zumbis) no final do log.
 
-Além dos scripts Bash, `oraex/capacity_apache.py` é uma ferramenta Python separada (roda na máquina do analista, não no servidor RHEL) que lê os logs gerados por `healthcheck_apache.sh` e gera uma planilha `.xlsx` de capacity planning (baseline medida + sizing do servidor novo).
+Além dos scripts Bash, `trabalho/capacity_apache.py` é uma ferramenta Python separada (roda na máquina do analista, não no servidor RHEL) que lê os logs gerados por `healthcheck_apache.sh` e gera uma planilha `.xlsx` de capacity planning (baseline medida + sizing do servidor novo).
 
-Os scripts `oraex/*` ficam agrupados na pasta `oraex/` (suíte de health check/capacity Oracle/Apache). Os utilitários avulsos em `meus_scripts/` (`comparar_e_colar.py`, `formatar_hd_exfat.py`, `aws_cleanup.py`, `battery_health.sh`) não fazem parte dessa suíte — são scripts pessoais soltos (comparação/backup de pastas, formatação de HD externo em exFAT, limpeza destrutiva de conta AWS e diagnóstico de saúde de bateria em Linux). Ver `meus_scripts/README.md` para detalhes de uso de cada um.
+Os scripts `trabalho/*` ficam agrupados na pasta `trabalho/` (suíte de health check/capacity Oracle/Apache). Os utilitários avulsos em `meus_scripts/` (`comparar_e_colar.py`, `formatar_hd_exfat.py`, `aws_cleanup.py`, `battery_health.sh`) não fazem parte dessa suíte — são scripts pessoais soltos (comparação/backup de pastas, formatação de HD externo em exFAT, limpeza destrutiva de conta AWS e diagnóstico de saúde de bateria em Linux). Ver `meus_scripts/README.md` para detalhes de uso de cada um.
 
 ## Ambiente alvo
 
@@ -25,7 +25,7 @@ Os scripts `oraex/*` ficam agrupados na pasta `oraex/` (suíte de health check/c
 
 ```
 .
-├── oraex/
+├── trabalho/
 │   ├── healthcheck_apache.sh    # servidor App
 │   ├── healthcheck_oracle.sh    # servidor Oracle
 │   ├── capacity_apache.py       # gera planilha .xlsx de capacity a partir dos logs do healthcheck_apache.sh
@@ -39,15 +39,15 @@ Os scripts `oraex/*` ficam agrupados na pasta `oraex/` (suíte de health check/c
 │   ├── battery_health.sh        # diagnostico de saude da bateria em notebooks Linux
 │   └── README.md                # uso detalhado de cada script desta pasta
 ├── CLAUDE.md                    # este arquivo
-└── .claude/SKILLS.md            # catálogo de checagens + runbook de alertas (suíte oraex)
+└── .claude/SKILLS.md            # catálogo de checagens + runbook de alertas (suíte trabalho)
 ```
 
-Não há build. Os scripts Bash são autocontidos; toda configuração fica em variáveis no topo de cada arquivo. O `capacity_apache.py` depende apenas de `openpyxl` (ver `oraex/requirements.txt`).
+Não há build. Os scripts Bash são autocontidos; toda configuração fica em variáveis no topo de cada arquivo. O `capacity_apache.py` depende apenas de `openpyxl` (ver `trabalho/requirements.txt`).
 
 ### Rodar o capacity_apache.py
 
 ```bash
-cd oraex
+cd trabalho
 python3 -m venv .venv && source .venv/bin/activate   # opcional, mas recomendado
 pip install -r requirements.txt
 
@@ -82,7 +82,7 @@ Ajuste o bloco `CONFIGURACAO` no topo do arquivo (principalmente `PASTA_LOGS`) o
 ## Testar localmente
 
 ```bash
-cd oraex
+cd trabalho
 
 # 1) Validar sintaxe (obrigatório antes de qualquer commit)
 bash -n healthcheck_apache.sh && bash -n healthcheck_oracle.sh
@@ -97,7 +97,7 @@ Se houver `shellcheck` disponível, rode `shellcheck -S warning *.sh`.
 ## Deploy
 
 ```bash
-sudo cp oraex/healthcheck_apache.sh /usr/local/sbin/     # _oracle no servidor DB
+sudo cp trabalho/healthcheck_apache.sh /usr/local/sbin/     # _oracle no servidor DB
 sudo chmod 750 /usr/local/sbin/healthcheck_apache.sh
 sudo mkdir -p /var/log/healthcheck
 ```
