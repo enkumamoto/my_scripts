@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash -n /Users/ronin/Documents/Coding/scripts/healthcheck_apache.sh)",
+      "Bash(bash -n /Users/ronin/Documents/Coding/scripts/healthcheck_oracle.sh)",
+      "Bash(/usr/bin/env python3 -m pip install --user openpyxl)",
+      "Bash(/usr/bin/env python3 -m pip install --user --break-system-packages openpyxl)",
+      "Bash(/usr/bin/env python3 -c \"import openpyxl; print\\('ok', openpyxl.__version__\\)\")",
+      "Bash(mkdir -p oraex meus_scripts)",
+      "Bash(git mv *)",
+      "Bash(mv capacity_apache.py capacity_apache.xlsx healthcheck_apache.sh healthcheck_oracle.sh old_capacity_script.sh requirements.txt oraex/)",
+      "Bash(mv comparar_e_colar.py formatar_hd_exfat.py meus_scripts/)",
+      "Bash(mkdir -p \"/Users/ronin/Documents/Coding/scripts/oraex\" && echo OK)",
+      "Bash(python3 -m py_compile /Users/ronin/Documents/Coding/scripts/meus_scripts/comparar_e_colar.py)",
+      "Bash(python3 -m py_compile comparar_e_colar.py formatar_hd_exfat.py)",
+      "Bash(git ls-remote *)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git fetch *)",
+      "Bash(git ls-tree *)",
+      "Bash(git branch *)",
+      "Bash(git reset *)",
+      "Bash(git checkout *)",
+      "Bash(git add *)"
+    ],
+    "additionalDirectories": [
+      "/Users/ronin/Documents/Coding/scripts"
+    ]
+  }
+}
