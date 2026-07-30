@@ -1,37 +1,4 @@
 #!/usr/bin/env python3
-"""
-localiza_emove.py
-
-Varre recursivamente todas as pastas e subpastas de um local informado pelo
-usuario, procurando apenas por arquivos: PDF, XLS, XLSX, DOC, DOCX.
-
-Detecta arquivos repetidos (por conteudo) e organiza tudo dentro da pasta
-"Documentos" do usuario, em tres subpastas:
-
-    Documentos/DOCS   <- .doc  e .docx
-    Documentos/XLS    <- .xls  e .xlsx
-    Documentos/PDFs   <- .pdf
-
-Regras de seguranca:
-  - Duplicatas (mesmo conteudo) sao movidas apenas UMA vez; as copias extras
-    ficam onde estao e sao apenas reportadas.
-  - Se ja existir no destino um arquivo IDENTICO, o arquivo e apenas removido
-    da lista (nao cria copia) -- na verdade e pulado, permanecendo na origem.
-  - Se existir no destino um arquivo DIFERENTE com o mesmo nome, o novo e
-    renomeado (nome_1.pdf, nome_2.pdf...) para nao sobrescrever nada.
-
-Tambem remove pastas vazias deixadas para tras na origem.
-
-Uso:
-    python3 localiza_emove.py /caminho/da/origem
-    python3 localiza_emove.py /caminho/da/origem --dry-run
-    python3 localiza_emove.py /caminho/da/origem --documentos /outra/pasta/Documentos
-    python3 localiza_emove.py /caminho/da/origem --acao mover
-    python3 localiza_emove.py /caminho/da/origem --acao limpar
-
-Sem --acao, um menu interativo pergunta o que fazer: mover e organizar,
-so mover, ou so limpar pastas vazias.
-"""
 
 import argparse
 import hashlib
@@ -39,7 +6,6 @@ import shutil
 import sys
 from pathlib import Path
 
-# Extensao -> subpasta de destino
 MAPA_EXTENSOES = {
     ".doc":  "DOCS",
     ".docx": "DOCS",
@@ -89,7 +55,6 @@ def menu_acao():
 
 
 def hash_arquivo(caminho, bloco=1024 * 1024):
-    """Calcula o SHA-256 do arquivo, lendo em blocos (bom para arquivos grandes)."""
     h = hashlib.sha256()
     with open(caminho, "rb") as f:
         for pedaco in iter(lambda: f.read(bloco), b""):
@@ -98,22 +63,13 @@ def hash_arquivo(caminho, bloco=1024 * 1024):
 
 
 def destino_sem_conflito(pasta_destino, nome_arquivo, hash_origem):
-    """
-    Decide o caminho de destino para 'nome_arquivo' dentro de 'pasta_destino'.
-
-    Retorna uma tupla (acao, caminho):
-      - ("pular", caminho)  -> ja existe identico no destino, nao mover
-      - ("mover", caminho)  -> caminho livre (possivelmente renomeado)
-    """
     destino = pasta_destino / nome_arquivo
     if not destino.exists():
         return ("mover", destino)
 
-    # Ja existe algo com esse nome. E identico?
     if destino.is_file() and hash_arquivo(destino) == hash_origem:
-        return ("pular", destino)  # mesmo conteudo, nao duplicar
+        return ("pular", destino)
 
-    # Nome ocupado por arquivo DIFERENTE -> renomeia
     base = destino.stem
     ext = destino.suffix
     i = 1
@@ -127,11 +83,6 @@ def destino_sem_conflito(pasta_destino, nome_arquivo, hash_origem):
 
 
 def remove_pastas_vazias(origem, pastas_protegidas, dry_run):
-    """
-    Remove recursivamente subpastas vazias dentro de 'origem', de baixo para
-    cima. Nunca remove 'origem' nem pastas em 'pastas_protegidas'.
-    Retorna a quantidade de pastas removidas (ou que seriam removidas).
-    """
     protegidas = {p.lower() for p in pastas_protegidas}
     removidas = 0
     pastas = sorted(
@@ -161,11 +112,6 @@ def remove_pastas_vazias(origem, pastas_protegidas, dry_run):
 
 
 def mover_arquivos(origem, destinos, pastas_destino_resolvidas, dry_run):
-    """
-    Localiza os arquivos-alvo em 'origem' e move para as pastas em
-    'destinos', detectando repetidos. Retorna um dict com as contagens.
-    """
-    # Cria as subpastas de destino
     for caminho in destinos.values():
         if dry_run:
             if not caminho.exists():
@@ -173,14 +119,12 @@ def mover_arquivos(origem, destinos, pastas_destino_resolvidas, dry_run):
         else:
             caminho.mkdir(parents=True, exist_ok=True)
 
-    # 1) Coleta os arquivos-alvo (ignorando as pastas de destino)
     alvos = []
     for arquivo in origem.rglob("*"):
         if not arquivo.is_file():
             continue
         if arquivo.suffix.lower() not in MAPA_EXTENSOES:
             continue
-        # pula qualquer arquivo que ja esteja dentro de uma pasta de destino
         pais_arquivo = {str(p).lower() for p in arquivo.resolve().parents}
         if any(dest in pais_arquivo for dest in pastas_destino_resolvidas):
             continue
@@ -189,8 +133,7 @@ def mover_arquivos(origem, destinos, pastas_destino_resolvidas, dry_run):
     print(f"Arquivos-alvo encontrados: {len(alvos)}")
     print("-" * 60)
 
-    # 2) Calcula hash e detecta repetidos na ORIGEM
-    vistos = {}          # hash -> primeiro caminho encontrado
+    vistos = {}
     movidos = 0
     pulados_destino = 0
     duplicatas_origem = 0
@@ -204,7 +147,6 @@ def mover_arquivos(origem, destinos, pastas_destino_resolvidas, dry_run):
             erros += 1
             continue
 
-        # Repetido dentro da propria origem?
         if h in vistos:
             print(f"[REPETIDO] {arquivo}")
             print(f"           identico a: {vistos[h]}  (mantido no lugar)")
@@ -215,7 +157,6 @@ def mover_arquivos(origem, destinos, pastas_destino_resolvidas, dry_run):
         subpasta = MAPA_EXTENSOES[arquivo.suffix.lower()]
         pasta_destino = destinos[subpasta]
 
-        # ainda em dry-run a pasta pode nao existir; simula
         if dry_run and not pasta_destino.exists():
             print(f"[mover] {arquivo.name}  ->  {pasta_destino}/")
             movidos += 1
@@ -229,7 +170,6 @@ def mover_arquivos(origem, destinos, pastas_destino_resolvidas, dry_run):
             pulados_destino += 1
             continue
 
-        # acao == "mover"
         if dry_run:
             print(f"[mover] {arquivo.name}  ->  {destino}")
             movidos += 1
@@ -255,7 +195,6 @@ def mover_arquivos(origem, destinos, pastas_destino_resolvidas, dry_run):
 def main():
     args = parse_args()
 
-    # Se o caminho nao veio por argumento, pergunta ao usuario.
     caminho_origem = args.origem
     if not caminho_origem:
         try:
@@ -263,7 +202,6 @@ def main():
         except (EOFError, KeyboardInterrupt):
             print("\nCancelado.")
             sys.exit(1)
-        # remove aspas caso o usuario arraste a pasta para o Terminal
         caminho_origem = caminho_origem.strip().strip('"').strip("'")
 
     if not caminho_origem:
@@ -279,13 +217,7 @@ def main():
 
     acao = args.acao or menu_acao()
 
-    # Pastas de destino
     destinos = {nome: documentos / nome for nome in SUBPASTAS}
-    # Caminhos que NAO devem ser varridos (as proprias pastas de destino),
-    # para nao mover/remover o que ja esta organizado.
-    # Comparacao em minusculas: Path.parents faz comparacao textual pura
-    # (nao consulta o filesystem), entao em disco case-sensitive "PDFs" e
-    # "PDFS" seriam tratados como pastas diferentes mesmo sendo a mesma.
     pastas_destino_resolvidas = [str(d.resolve()).lower() for d in destinos.values()]
 
     print(f"Origem     : {origem}")
@@ -301,14 +233,11 @@ def main():
 
     pastas_removidas = None
     if acao in ("tudo", "limpar"):
-        # Remove pastas vazias deixadas para tras na origem
-        # (nunca mexe na origem em si nem nas pastas de destino).
         print("-" * 60)
         pastas_removidas = remove_pastas_vazias(
             origem, pastas_destino_resolvidas, args.dry_run
         )
 
-    # Resumo
     print("-" * 60)
     print("RESUMO")
     if stats is not None:
