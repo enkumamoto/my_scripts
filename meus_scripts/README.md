@@ -1,6 +1,6 @@
 # meus_scripts
 
-Utilitários de uso pessoal, sem relação com a suíte `trabalho/` (health check Oracle/Apache).
+Utilitários de uso pessoal.
 
 ## comparar_e_colar.py
 
