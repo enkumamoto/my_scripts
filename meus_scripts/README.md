@@ -98,3 +98,7 @@ bash battery_health.sh
 ```
 
 Não recebe argumentos. Precisa de `bc` instalado (usado para o cálculo percentual de saúde). Sem efeito em macOS/Windows — depende da interface `/sys/class/power_supply` do kernel Linux.
+
+## git_check/
+
+Painel web local (FastAPI) para checar os repositórios do GitHub: lista públicos e privados separadamente, checa regras dos públicos e permite trocar a visibilidade. Fica em subpasta própria — ver [git_check/README.md](git_check/README.md).
