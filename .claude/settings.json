@@ -41,7 +41,8 @@
       "Bash(mkdir -p c_origem c_backup)",
       "Bash(python3 /Users/ronin/Documents/Coding/scripts/meus_scripts/comparar_e_colar.py c_origem c_backup --modo comparar)",
       "Bash(mkdir -p c_origem)",
-      "Bash(python3 /Users/ronin/Documents/Coding/scripts/meus_scripts/comparar_e_colar.py c_origem c_backup --modo copiar)"
+      "Bash(python3 /Users/ronin/Documents/Coding/scripts/meus_scripts/comparar_e_colar.py c_origem c_backup --modo copiar)",
+      "Bash(python3 -m py_compile capacity_oracle.py)"
     ],
     "additionalDirectories": [
       "/Users/ronin/Documents/Coding/scripts",
